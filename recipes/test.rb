@@ -4,6 +4,7 @@
 # Recipe:: test
 #
 # Author:: Joshua Timberman <joshua@opscode.com>
+# Author:: Sean OMeara <someara@opscode.com>
 # Copyright:: Copyright (c) 2013, Opscode, Inc <legal@opscode.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,30 +20,19 @@
 # limitations under the License.
 #
 
+include_recipe 'yum::base'
 include_recipe 'yum::epel'
-include_recipe 'yum::elrepo'
-include_recipe 'yum::ius'
-include_recipe 'yum::repoforge'
-include_recipe 'yum::yum'
-include_recipe 'yum::remi'
 
-%w{add create}.each do |act|
-  file "/etc/yum.repos.d/zenoss-#{act}.repo" do
-    action :create
-  end
+# include_recipe 'yum::elrepo'
+# include_recipe 'yum::ius'
+# include_recipe 'yum::repoforge'
+# include_recipe 'yum::yum'
+# include_recipe 'yum::remi'
 
-  yum_repository "zenoss-#{act}" do
-    description 'Zenoss Stable repo'
-    url 'http://dev.zenoss.com/yum/stable/'
-    key 'RPM-GPG-KEY-zenoss'
-    action act.to_sym
-  end
-end
-
-yum_repository 'cook-3025' do
-  description 'cook-3025'
-  url 'http://example.invalid'
-  enabled 0
-  make_cache false
-  proxy 'http://proxy.invalid:1234/path'
-end
+# yum_repository 'cook-3025' do
+#   description 'cook-3025'
+#   url 'http://example.invalid'
+#   enabled 0
+#   make_cache false
+#   proxy 'http://proxy.invalid:1234/path'
+# end

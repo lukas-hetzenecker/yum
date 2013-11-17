@@ -29,3 +29,5 @@ default['yum']['proxy_username'] = ''
 default['yum']['proxy_password'] = ''
 default['yum']['cachedir'] = '/var/cache/yum'
 default['yum']['keepcache'] = 0
+
+

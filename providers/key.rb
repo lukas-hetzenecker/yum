@@ -3,8 +3,7 @@
 # Cookbook Name:: yum
 # Provider:: key
 #
-# Copyright 2010, Tippr Inc.
-# Copyright 2011, Opscode, Inc.
+# Copyright 2013, Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,24 +18,27 @@
 # limitations under the License.
 #
 
-def whyrun_supported?
-  true
-end
+use_inline_resources
 
 action :add do
-  unless ::File.exists?("/etc/pki/rpm-gpg/#{new_resource.key}")
-    Chef::Log.info "Adding #{new_resource.key} GPG key to /etc/pki/rpm-gpg/"
-
-    if node['platform_version'].to_i <= 5
+  if node['platform_version'].to_i <= 5
       package 'gnupg'
-    elsif node['platform_version'].to_i >= 6
-      package 'gnupg2'
-    end
+  elsif node['platform_version'].to_i >= 6
+    package 'gnupg2'
+  end
 
-    execute "import-rpm-gpg-key-#{new_resource.key}" do
-      command "rpm --import /etc/pki/rpm-gpg/#{new_resource.key}"
-      action :nothing
-      not_if <<-EOH
+  # download the file if necessary
+  remote_file "yum_key #{new_resource.key}" do
+    path "/etc/pki/rpm-gpg/#{new_resource.key.split('/').last}"
+    source new_resource.url
+    mode '0644'
+    notifies :run, "execute[import-rpm-gpg-key-#{new_resource.key}]", :immediately
+  end
+  
+  execute "import-rpm-gpg-key-#{new_resource.key}" do
+    command "rpm --import /etc/pki/rpm-gpg/#{new_resource.key}"
+    not_if { ::File.exists? "/etc/pki/rpm-gpg/#{new_resource.key}" }   
+    not_if <<-EOH
     function packagenames_for_keyfile() {
       local filename="$1"
       gpg \
@@ -55,26 +57,13 @@ action :add do
 
     exit 0
     EOH
-    end
-
-    # download the file if necessary
-    unless new_resource.url.nil?
-      remote_file "/etc/pki/rpm-gpg/#{new_resource.key}" do
-        source new_resource.url
-        mode '0644'
-        notifies :run, "execute[import-rpm-gpg-key-#{new_resource.key}]", :immediately
-      end
-    end
-
   end
+  action :nothing
 end
 
 action :remove do
-  if ::File.exists?("/etc/pki/rpm-gpg/#{new_resource.key}")
-    Chef::Log.info "Removing #{new_resource.key} key from /etc/pki/rpm-gpg/"
-    file "/etc/pki/rpm-gpg/#{new_resource.key}" do
-      action :delete
-    end
-    new_resource.updated_by_last_action(true)
+  file "/etc/pki/rpm-gpg/#{new_resource.key}" do
+    action :delete
   end
+  # TODO - remove key from rpm databas
 end
