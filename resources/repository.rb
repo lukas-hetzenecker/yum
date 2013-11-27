@@ -21,7 +21,7 @@
 actions :add, :remove, :update, :create
 
 # name of the repo, used for .repo filename
-ttribute :repo_name, kind_of: String, name_attribute: true
+attribute :repo_name, kind_of: String, name_attribute: true
 attribute :description, kind_of: String # long description
 attribute :url, kind_of: String, default: ''
 attribute :mirrorlist, default: false
